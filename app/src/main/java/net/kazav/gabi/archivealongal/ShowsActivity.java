@@ -15,10 +15,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
-import static net.kazav.gabi.archivealongal.AppGlobal.showimg;
-import static net.kazav.gabi.archivealongal.AppGlobal.showscode;
-import static net.kazav.gabi.archivealongal.AppGlobal.showsname;
+import static net.kazav.gabi.archivealongal.AppGlobal.shows;
+import static net.kazav.gabi.archivealongal.AppGlobal.Show;
 
 public class ShowsActivity extends AppCompatActivity {
 
@@ -29,33 +30,36 @@ public class ShowsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shows);
 
-        CustomAdapter adpt = new CustomAdapter(this);
+        Log.i(TAG, "onCreate");
+        Log.i(TAG, Integer.toString(shows.size()));
+
+        CustomAdapter adpt = new CustomAdapter(this, shows);
         ListView lv = (ListView) findViewById(R.id.shows_list);
         lv.setAdapter(adpt);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.i("Clicked", Integer.toString(i));
-                Log.i("URL", showsname.get(i));
+                Log.i("URL", shows.get(i).name);
                 goto_list(i);
             }
         });
     }
 
     private void goto_list(int i) {
-        Log.i(TAG, "Choosed: " + showscode.get(i));
+        Log.i(TAG, "Choosed: " + shows.get(i).name);
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(LoadShow, showscode.get(i));
+        intent.putExtra(LoadShow, shows.get(i).code);
         startActivity(intent);
         finish();
     }
 
-    private class CustomAdapter extends ArrayAdapter<String>{
+    private class CustomAdapter extends ArrayAdapter<Show>{
 
         private final Activity context;
 
-        CustomAdapter(Activity context) {
-            super(context, R.layout.list_row);
+        CustomAdapter(Activity context, ArrayList<Show> showlist) {
+            super(context, 0, showlist);
             this.context = context;
         }
 
@@ -70,9 +74,10 @@ public class ShowsActivity extends AppCompatActivity {
             ViewHolder mViewHolder;
 
             if (view == null) {
+                Log.i(TAG, "view is null");
                 mViewHolder = new ViewHolder();
                 LayoutInflater inflater = context.getLayoutInflater();
-                view = inflater.inflate(R.layout.list_row, parent, true);
+                view = inflater.inflate(R.layout.list_row, parent, false);
                 mViewHolder.name = (TextView) view.findViewById(R.id.Itemname);
                 mViewHolder.img = (ImageView) view.findViewById(R.id.Itemicon);
                 view.setTag(mViewHolder);
@@ -80,9 +85,9 @@ public class ShowsActivity extends AppCompatActivity {
                 mViewHolder = (ViewHolder) view.getTag();
             }
 
-            mViewHolder.name.setText(showsname.get(position));
-            mViewHolder.img.setImageBitmap(showimg.get(position));
-            Log.i(TAG, "Added " + showsname.get(position));
+            mViewHolder.name.setText(shows.get(position).name);
+            mViewHolder.img.setImageBitmap(shows.get(position).img);
+            Log.i(TAG, "Added " + shows.get(position).name);
             return view;
         }
     }

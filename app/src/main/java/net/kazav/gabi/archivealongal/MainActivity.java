@@ -1,6 +1,7 @@
 package net.kazav.gabi.archivealongal;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -16,15 +17,14 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
+import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
-import static net.kazav.gabi.archivealongal.AppGlobal.showimg;
-import static net.kazav.gabi.archivealongal.AppGlobal.showscode;
-import static net.kazav.gabi.archivealongal.AppGlobal.showsname;
+import static net.kazav.gabi.archivealongal.AppGlobal.shows;
 import static net.kazav.gabi.archivealongal.AppGlobal.urls;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String loaderurl = "http://103.gabi.ninja/?show=";
+    private final String loaderurl = "http://103.gabi.ninja/calls?show=";
     private final String showsurl = "http://103.gabi.ninja/shows";
     private final String showspicurl = "http://103.gabi.ninja/pics?pic=";
     private final String TAG = "Loader";
@@ -42,12 +42,16 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
 
-        if (extras != null) {
-            if (extras.containsKey(LoadShow)) {
-                String show_code = extras.getString(LoadShow);
-                new LoadData().execute(show_code);
-            } else new LoadShows().execute();
-        }
+        Log.i(TAG, "onCreate");
+        Log.d(TAG, loaderurl);
+        Log.d(TAG, showsurl);
+        Log.d(TAG, showspicurl);
+
+        if ((extras != null) && (extras.containsKey(LoadShow))) {
+            Log.i(TAG, "have extras and show key");
+            String show_code = extras.getString(LoadShow);
+            new LoadData().execute(show_code);
+        } else new LoadShows().execute();
 
 
 //        // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -56,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void goto_list(String kind) {
+        Log.i(TAG, "goto_list " + kind);
         Intent intent;
         if (kind.equals("show")) intent = new Intent(this, ListActivity.class);
         else intent = new Intent(this, ShowsActivity.class);
@@ -103,7 +108,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(String... params) {
             try {
+                Log.i(TAG, "LoadData (calls)");
                 URL url = new URL(loaderurl + params[0]);
+                Log.i(TAG, "code=" + params[0]);
+                Log.i(TAG, "url=" + loaderurl + params[0]);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
@@ -111,14 +119,18 @@ public class MainActivity extends AppCompatActivity {
 
                 int response = connection.getResponseCode();
                 if (response >= 200 && response <= 399) {
+                    Log.i(TAG, "got 200");
                     urls = new ArrayList<>();
                     names = new ArrayList<>();
+                    clicks = new ArrayList<>();
                     BufferedReader r = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String line;
                     while ((line = r.readLine()) != null) {
+                        Log.i(TAG, "Added: " + line);
                         String[] res = line.split("xXx");
                         names.add(res[0]);
                         urls.add(res[1]);
+                        clicks.add(false);
                     }
                 } else {
                     Log.e(TAG, "Got response: " + Integer.toString(response));
@@ -153,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                Log.i(TAG, "LoadShows");
                 URL url = new URL(showsurl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoOutput(true);
@@ -161,22 +174,22 @@ public class MainActivity extends AppCompatActivity {
 
                 int response = connection.getResponseCode();
                 if (response >= 200 && response <= 399) {
-                    showscode = new ArrayList<>();
-                    showsname = new ArrayList<>();
-                    showimg = new ArrayList<>();
+                    Log.i(TAG, "got 200");
+                    shows = new ArrayList<>();
                     BufferedReader r = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String line;
                     while ((line = r.readLine()) != null) {
                         String[] res = line.split("\\|");
-                        showscode.add(res[0]);
-                        showsname.add(res[1]);
+                        Bitmap img = null;
                         URL picurl = new URL(showspicurl + res[0] + ".jpg");
                         HttpURLConnection piccon = (HttpURLConnection) picurl.openConnection();
                         piccon.getDoOutput();
                         piccon.setRequestMethod("GET");
                         piccon.connect();
                         if (piccon.getResponseCode() == 200)
-                            showimg.add(BitmapFactory.decodeStream(piccon.getInputStream()));
+                            img = BitmapFactory.decodeStream(piccon.getInputStream());
+                        AppGlobal.Show cur_show = new AppGlobal.Show(res[1], res[0], img);
+                        shows.add(cur_show);
                         piccon.disconnect();
                     }
                 } else {

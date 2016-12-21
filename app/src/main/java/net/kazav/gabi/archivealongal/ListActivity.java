@@ -1,12 +1,17 @@
 package net.kazav.gabi.archivealongal;
 
+import android.app.Activity;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -22,8 +27,10 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
 import static net.kazav.gabi.archivealongal.AppGlobal.urls;
 
@@ -40,6 +47,9 @@ public class ListActivity extends AppCompatActivity implements Runnable{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
+
+        Log.d(TAG, callsurl);
+        Log.d(TAG, call_direct);
 
         sb = (SeekBar) findViewById(R.id.seek);
 
@@ -72,14 +82,16 @@ public class ListActivity extends AppCompatActivity implements Runnable{
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        ArrayAdapter<String> list_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, names);
+        CallsAdapter adpt = new CallsAdapter(this, names);
         ListView lv = (ListView) findViewById(R.id.calls_list);
-        lv.setAdapter(list_adapter);
+        lv.setAdapter(adpt);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.i("Clicked", Integer.toString(i));
                 Log.i("URL", urls.get(i));
+                clicks.set(i, true);
+                set_click(view, true);
                 new GetCall().execute(urls.get(i));
             }
         });
@@ -146,7 +158,7 @@ public class ListActivity extends AppCompatActivity implements Runnable{
         new Thread(this).start();
     }
 
-        private class GetCall extends AsyncTask<String, Void, String> {
+    private class GetCall extends AsyncTask<String, Void, String> {
         @Override
         protected String doInBackground(String... params) {
             String ret_val = "";
@@ -193,6 +205,60 @@ public class ListActivity extends AppCompatActivity implements Runnable{
 
         @Override
         protected void onProgressUpdate(Void... values) {
+        }
+    }
+
+    private class CallsAdapter extends ArrayAdapter<String>{
+
+        private final Activity context;
+
+        CallsAdapter(Activity context, ArrayList<String> callslist) {
+            super(context, 0, callslist);
+            this.context = context;
+        }
+
+        private class ViewHolder {
+            private TextView call;
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, View view, @NonNull ViewGroup parent) {
+            ViewHolder mViewHolder;
+
+            if (view == null) {
+                Log.i(TAG, "view is null");
+                mViewHolder = new ViewHolder();
+                LayoutInflater inflater = context.getLayoutInflater();
+                view = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
+                mViewHolder.call = (TextView) view.findViewById(android.R.id.text1);
+                view.setTag(mViewHolder);
+            } else {
+                mViewHolder = (ViewHolder) view.getTag();
+            }
+
+            mViewHolder.call.setText(names.get(position));
+            set_click(view, clicks.get(position));
+            Log.i(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
+            return view;
+        }
+    }
+
+    private void set_click(View v, boolean b) {
+        if (b) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light, getTheme()));
+            }else {
+                //noinspection deprecation
+                v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                v.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
+            }else {
+                //noinspection deprecation
+                v.setBackgroundColor(getResources().getColor(android.R.color.white));
+            }
         }
     }
 }

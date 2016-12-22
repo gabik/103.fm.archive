@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
 import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
 import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
+import static net.kazav.gabi.archivealongal.AppGlobal.cur_logo;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
 import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
 import static net.kazav.gabi.archivealongal.AppGlobal.shows;
@@ -40,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ImageView img = (ImageView) findViewById(R.id.mainlogo);
 
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
@@ -52,8 +55,8 @@ public class MainActivity extends AppCompatActivity {
         if ((extras != null) && (extras.containsKey(LoadShow))) {
             Log.i(TAG, "have extras and show key");
             String show_code = extras.getString(LoadShow);
-            cur_code = show_code;
             save_done = getSharedPreferences(cur_code, MODE_PRIVATE);
+            img.setImageBitmap(cur_logo);
             new LoadData().execute(show_code);
         } else new LoadShows().execute();
 

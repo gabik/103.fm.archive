@@ -18,6 +18,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
+import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
+import static net.kazav.gabi.archivealongal.AppGlobal.cur_logo;
 import static net.kazav.gabi.archivealongal.AppGlobal.shows;
 import static net.kazav.gabi.archivealongal.AppGlobal.Show;
 
@@ -48,6 +50,8 @@ public class ShowsActivity extends AppCompatActivity {
 
     private void goto_list(int i) {
         Log.i(TAG, "Choosed: " + shows.get(i).name);
+        cur_logo = shows.get(i).img;
+        cur_code = shows.get(i).code;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra(LoadShow, shows.get(i).code);
         startActivity(intent);

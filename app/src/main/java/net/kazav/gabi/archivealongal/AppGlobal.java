@@ -32,6 +32,7 @@ class AppGlobal {
     static String LoadShow = "LoadShow";
 
     static String cur_code;
+    static Bitmap cur_logo;
 
     static SharedPreferences save_done;
 }

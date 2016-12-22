@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -118,6 +119,8 @@ public class ListActivity extends AppCompatActivity implements Runnable{
                 stop_listen();
             }
         });
+
+        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
@@ -151,10 +154,8 @@ public class ListActivity extends AppCompatActivity implements Runnable{
     }
 
     private void stop_listen() {
-        if(mp != null && mp.isPlaying()) {
-            mp.stop();
-            mp.reset();
-        }
+        if (mp != null && mp.isPlaying()) mp.stop();
+        if (mp != null) mp.reset();
     }
 
     private void start_listen(String mp3) {

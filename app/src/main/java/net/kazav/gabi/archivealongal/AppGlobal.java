@@ -1,5 +1,6 @@
 package net.kazav.gabi.archivealongal;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 
 import java.util.ArrayList;
@@ -29,4 +30,8 @@ class AppGlobal {
     static ArrayList<Boolean> clicks = null;
 
     static String LoadShow = "LoadShow";
+
+    static String cur_code;
+
+    static SharedPreferences save_done;
 }

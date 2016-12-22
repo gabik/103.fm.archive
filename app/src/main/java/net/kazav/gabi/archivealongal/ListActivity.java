@@ -1,6 +1,7 @@
 package net.kazav.gabi.archivealongal;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -31,7 +32,9 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
+import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
+import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
 import static net.kazav.gabi.archivealongal.AppGlobal.urls;
 
 public class ListActivity extends AppCompatActivity implements Runnable{
@@ -42,6 +45,7 @@ public class ListActivity extends AppCompatActivity implements Runnable{
     private MediaPlayer mp;
     private SeekBar sb;
     private TextView endtime, starttime;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +86,8 @@ public class ListActivity extends AppCompatActivity implements Runnable{
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
+        Log.i(TAG, "Loading saved");
+
         CallsAdapter adpt = new CallsAdapter(this, names);
         ListView lv = (ListView) findViewById(R.id.calls_list);
         lv.setAdapter(adpt);
@@ -91,8 +97,17 @@ public class ListActivity extends AppCompatActivity implements Runnable{
                 Log.i("Clicked", Integer.toString(i));
                 Log.i("URL", urls.get(i));
                 clicks.set(i, true);
+                save_done.edit().putBoolean(urls.get(i), true).apply();
                 set_click(view, true);
                 new GetCall().execute(urls.get(i));
+            }
+        });
+        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                if (save_done.contains(urls.get(i))) save_done.edit().remove(urls.get(i)).apply();
+                set_click(view, false);
+                return true;
             }
         });
 

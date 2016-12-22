@@ -48,5 +48,6 @@
         android:layout_below="@id/starttime"
         android:layout_marginTop="10dp"
         android:id="@+id/calls_list"
+        android:longClickable="true"
         />
 </RelativeLayout>

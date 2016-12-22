@@ -18,7 +18,9 @@ import java.util.ArrayList;
 
 import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
 import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
+import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
+import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
 import static net.kazav.gabi.archivealongal.AppGlobal.shows;
 import static net.kazav.gabi.archivealongal.AppGlobal.urls;
 
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
         if ((extras != null) && (extras.containsKey(LoadShow))) {
             Log.i(TAG, "have extras and show key");
             String show_code = extras.getString(LoadShow);
+            cur_code = show_code;
+            save_done = getSharedPreferences(cur_code, MODE_PRIVATE);
             new LoadData().execute(show_code);
         } else new LoadShows().execute();
 
@@ -130,7 +134,8 @@ public class MainActivity extends AppCompatActivity {
                         String[] res = line.split("xXx");
                         names.add(res[0]);
                         urls.add(res[1]);
-                        clicks.add(false);
+                        if (save_done.contains(res[1])) clicks.add(true);
+                        else clicks.add(false);
                     }
                 } else {
                     Log.e(TAG, "Got response: " + Integer.toString(response));

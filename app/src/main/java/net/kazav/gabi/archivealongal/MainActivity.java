@@ -21,6 +21,7 @@ import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
 import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
 import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
 import static net.kazav.gabi.archivealongal.AppGlobal.cur_logo;
+import static net.kazav.gabi.archivealongal.AppGlobal.dates;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
 import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
 import static net.kazav.gabi.archivealongal.AppGlobal.shows;
@@ -129,14 +130,16 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "got 200");
                     urls = new ArrayList<>();
                     names = new ArrayList<>();
+                    dates = new ArrayList<>();
                     clicks = new ArrayList<>();
                     BufferedReader r = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String line;
                     while ((line = r.readLine()) != null) {
                         Log.i(TAG, "Added: " + line);
-                        String[] res = line.split("xXx");
+                        String[] res = line.split("\\|\\|");
                         names.add(res[0]);
                         urls.add(res[1]);
+                        dates.add(res[2]);
                         if (save_done.contains(res[1])) clicks.add(true);
                         else clicks.add(false);
                     }

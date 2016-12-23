@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
 import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
+import static net.kazav.gabi.archivealongal.AppGlobal.dates;
 import static net.kazav.gabi.archivealongal.AppGlobal.names;
 import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
 import static net.kazav.gabi.archivealongal.AppGlobal.urls;
@@ -235,6 +236,7 @@ public class ListActivity extends AppCompatActivity implements Runnable{
 
         private class ViewHolder {
             private TextView call;
+            private TextView date;
         }
 
         @NonNull
@@ -246,14 +248,16 @@ public class ListActivity extends AppCompatActivity implements Runnable{
                 Log.i(TAG, "view is null");
                 mViewHolder = new ViewHolder();
                 LayoutInflater inflater = context.getLayoutInflater();
-                view = inflater.inflate(android.R.layout.simple_list_item_1, parent, false);
-                mViewHolder.call = (TextView) view.findViewById(android.R.id.text1);
+                view = inflater.inflate(R.layout.list_row_with_date, parent, false);
+                mViewHolder.call = (TextView) view.findViewById(R.id.callname);
+                mViewHolder.date = (TextView) view.findViewById(R.id.calldate);
                 view.setTag(mViewHolder);
             } else {
                 mViewHolder = (ViewHolder) view.getTag();
             }
 
             mViewHolder.call.setText(names.get(position));
+            mViewHolder.date.setText(dates.get(position));
             set_click(view, clicks.get(position));
             Log.i(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
             return view;

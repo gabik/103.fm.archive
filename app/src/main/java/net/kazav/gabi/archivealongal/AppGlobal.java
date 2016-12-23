@@ -26,6 +26,7 @@ class AppGlobal {
 
     static ArrayList<String> names = null;
     static ArrayList<String> urls = null;
+    static ArrayList<String> dates = null;
     static ArrayList<Show> shows = null;
     static ArrayList<Boolean> clicks = null;
 

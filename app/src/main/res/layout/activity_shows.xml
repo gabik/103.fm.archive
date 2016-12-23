@@ -10,9 +10,34 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="net.kazav.gabi.archivealongal.ListActivity">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/livelayout"
+        android:orientation="horizontal"
+        android:clickable="true"
+        android:onClick="listen_live"
+        >
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:src="@drawable/live"
+            android:padding="10dp"
+            android:contentDescription="@string/live_icon"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="35sp"
+            android:gravity="center"
+            android:text="@string/_103fm_live"
+            />
+    </LinearLayout>
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/livelayout"
         android:id="@+id/shows_list"
         />
 </RelativeLayout>

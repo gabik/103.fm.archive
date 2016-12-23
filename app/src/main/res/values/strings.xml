@@ -2,4 +2,6 @@
     <string name="app_name">103FM Archive</string>
     <string name="loading">Loading..</string>
     <string name="logo">Logo</string>
+    <string name="_103fm_live">103fm Live</string>
+    <string name="live_icon">Live icon</string>
 </resources>

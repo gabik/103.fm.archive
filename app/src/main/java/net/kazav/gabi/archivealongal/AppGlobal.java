@@ -11,6 +11,7 @@ import java.util.ArrayList;
  */
 
 class AppGlobal {
+    static String LIVE_URL = "http://103fm.live.streamgates.net/103fm_live/1multix/icecast.audio";
 
     static class Show {
         String name;

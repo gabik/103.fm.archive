@@ -36,15 +36,17 @@ import static net.kazav.gabi.fm103archive.AppGlobal.myRef;
 import static net.kazav.gabi.fm103archive.AppGlobal.names;
 import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
-public class ListActivity extends AppCompatActivity implements Runnable{
+public class ListActivity extends AppCompatActivity implements Runnable {
 
     private final String callsurl = "http://103.gabi.ninja/get";
     private final String call_direct = "http://103fm.aod.streamgates.net/103fm_aod/";
     private final String TAG = "ListView";
     private MediaPlayer mp;
+    private int cur_pos;
     private SeekBar sb;
     private TextView endtime, starttime;
 
+    private TextView stop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +82,12 @@ public class ListActivity extends AppCompatActivity implements Runnable{
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
 
         Log.i(TAG, "Loading saved");
@@ -111,35 +116,38 @@ public class ListActivity extends AppCompatActivity implements Runnable{
             }
         });
 
-        TextView stop = (TextView) findViewById(R.id.stoptime);
+        stop = (TextView) findViewById(R.id.stoptime);
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                stop_listen();
+                stop_resume_listen(false);
             }
         });
     }
 
     @Override
     public void run() {
-        int currentPosition = mp.getCurrentPosition();
+        cur_pos = mp.getCurrentPosition();
         int total = mp.getDuration();
         sb.setMax(total);
 
-        while ((currentPosition < total) && (mp.isPlaying())) {
+        while ((cur_pos < total) && (mp.isPlaying())) {
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException e) { Log.w(TAG, "sleep interrupted"); }
-            currentPosition = mp.getCurrentPosition();
-            final int tmppos = currentPosition;
+            } catch (InterruptedException e) {
+                Log.w(TAG, "sleep interrupted");
+            }
+            cur_pos = mp.getCurrentPosition();
+            final int tmppos = cur_pos;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     starttime.setText(get_human_time(tmppos));
                 }
             });
-            sb.setProgress(currentPosition);
+            sb.setProgress(cur_pos);
         }
+        if (cur_pos >= total) stop_resume_listen(true);
     }
 
 
@@ -147,28 +155,49 @@ public class ListActivity extends AppCompatActivity implements Runnable{
         return String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(millis),
                 TimeUnit.MILLISECONDS.toSeconds(millis) -
-                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
     }
 
-    private void stop_listen() {
-        if (mp != null && mp.isPlaying()) mp.stop();
-        if (mp != null) mp.reset();
+    private void stop_resume_listen(boolean force_stop) {
+        Log.i(TAG, "STOP RESUME");
+        if (force_stop) {
+            if (mp.isPlaying()) mp.stop();
+            cur_pos = 0;
+        }
+        else if (mp != null)
+            if (!mp.isPlaying()) {
+                Log.i(TAG, "RESUME");
+                try {
+                    mp.prepare();
+                    mp.seekTo(cur_pos);
+                    mp.start();
+                    stop.setText("STOP");
+                    endtime.setText(get_human_time(mp.getDuration()));
+                    new Thread(this).start();
+                } catch (IOException e) {
+                    Log.e(TAG, "Cannot play");
+                }
+            } else {
+                Log.i(TAG, "STOP");
+                mp.stop();
+                stop.setText("PLAY");
+            }
     }
 
     private void start_listen(String mp3) {
         Log.i(TAG, mp3);
         String full_url = call_direct + mp3 + ".mp3";
         Log.i("FullURL", full_url);
-        stop_listen();
-        try {
-            mp.setDataSource(full_url);
-            mp.prepare();
-        } catch (IOException e) {
-            Log.e(TAG, "Cannot play");
+        stop_resume_listen(true);
+        if (mp != null) {
+            try {
+                mp.reset();
+                mp.setDataSource(full_url);
+            } catch (IOException e) {
+                Log.e(TAG, "Cannot play");
+            }
+            stop_resume_listen(false);
         }
-        mp.start();
-        endtime.setText(get_human_time(mp.getDuration()));
-        new Thread(this).start();
     }
 
     private class GetCall extends AsyncTask<String, Void, String> {

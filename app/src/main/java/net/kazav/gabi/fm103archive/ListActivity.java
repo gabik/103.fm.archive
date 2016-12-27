@@ -1,7 +1,6 @@
 package net.kazav.gabi.fm103archive;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -13,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -33,10 +31,9 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
-import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
 import static net.kazav.gabi.fm103archive.AppGlobal.dates;
-import static net.kazav.gabi..fm103archive.AppGlobal.names;
-import static net.kazav.gabi.fm103archive.AppGlobal.save_done;
+import static net.kazav.gabi.fm103archive.AppGlobal.myRef;
+import static net.kazav.gabi.fm103archive.AppGlobal.names;
 import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class ListActivity extends AppCompatActivity implements Runnable{
@@ -99,7 +96,7 @@ public class ListActivity extends AppCompatActivity implements Runnable{
                 Log.i("Clicked", Integer.toString(i));
                 Log.i("URL", urls.get(i));
                 clicks.set(i, true);
-                save_done.edit().putBoolean(urls.get(i), true).apply();
+                myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).setValue(true);
                 set_click(view, true);
                 new GetCall().execute(urls.get(i));
             }
@@ -107,7 +104,8 @@ public class ListActivity extends AppCompatActivity implements Runnable{
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                if (save_done.contains(urls.get(i))) save_done.edit().remove(urls.get(i)).apply();
+                myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).removeValue();
+                clicks.set(i, false);
                 set_click(view, false);
                 return true;
             }
@@ -120,8 +118,6 @@ public class ListActivity extends AppCompatActivity implements Runnable{
                 stop_listen();
             }
         });
-
-        //getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override

@@ -4,4 +4,5 @@
     <string name="logo">Logo</string>
     <string name="_103fm_live">103fm Live</string>
     <string name="live_icon">Live icon</string>
+    <string name="signing_in">Sign In</string>
 </resources>

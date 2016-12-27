@@ -2,6 +2,13 @@ package net.kazav.gabi.fm103archive;
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.util.Log;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
 
 import java.util.ArrayList;
 
@@ -11,6 +18,8 @@ import java.util.ArrayList;
  */
 
 class AppGlobal {
+    static final int RC_SIGN_IN = 1923;
+
     static String LIVE_URL = "http://103fm.live.streamgates.net/103fm_live/1multix/icecast.audio";
 
     static class Show {
@@ -36,5 +45,15 @@ class AppGlobal {
     static String cur_code;
     static Bitmap cur_logo;
 
-    static SharedPreferences save_done;
+    static GoogleApiClient mGoogleApiClient;
+
+    static GoogleApiClient.OnConnectionFailedListener GoogleFailed = new GoogleApiClient.OnConnectionFailedListener() {
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+            Log.e("Google connection", "Failed");
+        }
+    };
+
+    static FirebaseUser cur_user = null;
+    static DatabaseReference myRef;
 }

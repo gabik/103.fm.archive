@@ -13,16 +13,18 @@
         android:id="@+id/loader"
         android:layout_marginTop="0dp"
         android:paddingTop="50dp"
+        android:visibility="invisible"
         />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:text="@string/loading"
+        android:text="@string/signing_in"
         android:layout_above="@id/loader"
         android:layout_marginBottom="0dp"
         android:textSize="30sp"
         android:textColor="#6495ED"
+        android:id="@+id/load_label"
         />
 
     <ImageView
@@ -33,5 +35,15 @@
         android:layout_marginTop="30dp"
         android:id="@+id/mainlogo"
         android:contentDescription="@string/logo"
+        />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/sign_in_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:visibility="invisible"
         />
 </RelativeLayout>

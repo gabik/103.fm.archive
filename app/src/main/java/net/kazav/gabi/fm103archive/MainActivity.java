@@ -1,4 +1,4 @@
-package net.kazav.gabi.archivealongal;
+package net.kazav.gabi.fm103archive;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,15 +17,15 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
-import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
-import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
-import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
-import static net.kazav.gabi.archivealongal.AppGlobal.cur_logo;
-import static net.kazav.gabi.archivealongal.AppGlobal.dates;
-import static net.kazav.gabi.archivealongal.AppGlobal.names;
-import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
-import static net.kazav.gabi.archivealongal.AppGlobal.shows;
-import static net.kazav.gabi.archivealongal.AppGlobal.urls;
+import static net.kazav.gabi.fm103archive.AppGlobal.LoadShow;
+import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
+import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
+import static net.kazav.gabi.fm103archive.AppGlobal.cur_logo;
+import static net.kazav.gabi.fm103archive.AppGlobal.dates;
+import static net.kazav.gabi.fm103archive.AppGlobal.names;
+import static net.kazav.gabi.fm103archive.AppGlobal.save_done;
+import static net.kazav.gabi.fm103archive.AppGlobal.shows;
+import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class MainActivity extends AppCompatActivity {
 

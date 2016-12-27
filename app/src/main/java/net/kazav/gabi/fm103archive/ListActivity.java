@@ -1,4 +1,4 @@
-package net.kazav.gabi.archivealongal;
+package net.kazav.gabi.fm103archive;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -32,12 +32,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-import static net.kazav.gabi.archivealongal.AppGlobal.clicks;
-import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
-import static net.kazav.gabi.archivealongal.AppGlobal.dates;
-import static net.kazav.gabi.archivealongal.AppGlobal.names;
-import static net.kazav.gabi.archivealongal.AppGlobal.save_done;
-import static net.kazav.gabi.archivealongal.AppGlobal.urls;
+import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
+import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
+import static net.kazav.gabi.fm103archive.AppGlobal.dates;
+import static net.kazav.gabi..fm103archive.AppGlobal.names;
+import static net.kazav.gabi.fm103archive.AppGlobal.save_done;
+import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class ListActivity extends AppCompatActivity implements Runnable{
 

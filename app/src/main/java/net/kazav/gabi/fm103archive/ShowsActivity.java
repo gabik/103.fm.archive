@@ -1,4 +1,4 @@
-package net.kazav.gabi.archivealongal;
+package net.kazav.gabi.fm103archive;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -20,12 +20,12 @@ import android.widget.TextView;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import static net.kazav.gabi.archivealongal.AppGlobal.LIVE_URL;
-import static net.kazav.gabi.archivealongal.AppGlobal.LoadShow;
-import static net.kazav.gabi.archivealongal.AppGlobal.cur_code;
-import static net.kazav.gabi.archivealongal.AppGlobal.cur_logo;
-import static net.kazav.gabi.archivealongal.AppGlobal.shows;
-import static net.kazav.gabi.archivealongal.AppGlobal.Show;
+import static net.kazav.gabi.fm103archive.AppGlobal.LIVE_URL;
+import static net.kazav.gabi.fm103archive.AppGlobal.LoadShow;
+import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
+import static net.kazav.gabi.fm103archive.AppGlobal.cur_logo;
+import static net.kazav.gabi.fm103archive.AppGlobal.shows;
+import static net.kazav.gabi.fm103archive.AppGlobal.Show;
 
 public class ShowsActivity extends AppCompatActivity {
 

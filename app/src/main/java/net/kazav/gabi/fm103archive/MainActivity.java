@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
     private final String showspicurl = "http://103.gabi.ninja/pics?pic=";
     private final String TAG = "Loader";
     private FirebaseAuth mAuth;
-    private Bundle extras;
     private ArrayList<String> saved_on_db;
 
 
@@ -76,44 +75,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        extras = intent.getExtras();
+        Bundle extras = intent.getExtras();
+        gsi = ((SignInButton) findViewById(R.id.sign_in_button));
 
-        Log.i(TAG, "onCreate");
-        Log.d(TAG, loaderurl);
-        Log.d(TAG, showsurl);
-        Log.d(TAG, showspicurl);
-
-        mAuth = FirebaseAuth.getInstance();
-        cur_user = mAuth.getCurrentUser();
-
-        // Requesting Google sign in (ID + email)
-        gsi = ((SignInButton)findViewById(R.id.sign_in_button));
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, GoogleFailed)
-                .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-        gsi.setOnClickListener(new View.OnClickListener() {@Override public void onClick(View view) {signIn();}});
-
-        if (cur_user != null) signIn();
-        else gsi.setVisibility(View.VISIBLE);
-//        // ATTENTION: This was auto-generated to implement the App Indexing API.
-//        // See https://g.co/AppIndexing/AndroidStudio for more information.
-//        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-    }
-
-    private void load() {
-        ImageView img = (ImageView) findViewById(R.id.mainlogo);
-//        findViewById(R.id.loader).setVisibility(View.VISIBLE);
-//        ((TextView)findViewById(R.id.load_label)).setText(R.string.loading);
-//        gsi.setVisibility(View.INVISIBLE);
+        // Checking if we have show already chosen
         if ((extras != null) && (extras.containsKey(LoadShow))) {
+            Log.i(TAG, "Choosed show");
+            loading();
+            ImageView img = (ImageView) findViewById(R.id.mainlogo);
             Log.i(TAG, "have extras and show key");
             img.setImageBitmap(cur_logo);
             final String show_code = extras.getString(LoadShow);
+            assert cur_user.getEmail() != null;
             myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getEmail().replaceAll("\\.", ",") + "/" + cur_code);
             saved_on_db = new ArrayList<>();
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -123,13 +96,47 @@ public class MainActivity extends AppCompatActivity {
                     new LoadData().execute(show_code);
                 }
                 @Override public void onCancelled(DatabaseError databaseError) {}});
-        } else new LoadShows().execute();
+        } else { // If no show choosed - we are booting.
+            Log.i(TAG, "onCreate");
+            Log.d(TAG, loaderurl);
+            Log.d(TAG, showsurl);
+            Log.d(TAG, showspicurl);
+
+            mAuth = FirebaseAuth.getInstance();
+            cur_user = mAuth.getCurrentUser();
+
+            // Requesting Google sign in (ID + email)
+            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(getString(R.string.default_web_client_id))
+                    .requestEmail()
+                    .build();
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, GoogleFailed)
+                    .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+                    .build();
+            gsi.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    signIn();
+                }
+            });
+
+            if (cur_user != null) signIn();
+            else gsi.setVisibility(View.VISIBLE);
+        }
+//        // ATTENTION: This was auto-generated to implement the App Indexing API.
+//        // See https://g.co/AppIndexing/AndroidStudio for more information.
+//        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    public void signIn() {
+    private void loading() {
         findViewById(R.id.loader).setVisibility(View.VISIBLE);
         ((TextView)findViewById(R.id.load_label)).setText(R.string.loading);
         gsi.setVisibility(View.INVISIBLE);
+    }
+
+    public void signIn() {
+        loading();
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -336,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else {
                             cur_user = FirebaseAuth.getInstance().getCurrentUser();
-                            load();
+                            new LoadShows().execute();
                         }
                     }
                 });

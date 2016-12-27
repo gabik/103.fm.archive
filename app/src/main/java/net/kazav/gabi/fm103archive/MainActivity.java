@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         // Checking if we have show already chosen
         if ((extras != null) && (extras.containsKey(LoadShow))) {
             Log.i(TAG, "Choosed show");
-            loading();
+            loading(true);
             ImageView img = (ImageView) findViewById(R.id.mainlogo);
             Log.i(TAG, "have extras and show key");
             img.setImageBitmap(cur_logo);
@@ -129,14 +129,20 @@ public class MainActivity extends AppCompatActivity {
 //        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    private void loading() {
-        findViewById(R.id.loader).setVisibility(View.VISIBLE);
-        ((TextView)findViewById(R.id.load_label)).setText(R.string.loading);
-        gsi.setVisibility(View.INVISIBLE);
+    void loading(boolean to_load) {
+        if (to_load) {
+            findViewById(R.id.loader).setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.load_label)).setText(R.string.loading);
+            gsi.setVisibility(View.INVISIBLE);
+        } else {
+            findViewById(R.id.loader).setVisibility(View.INVISIBLE);
+            ((TextView) findViewById(R.id.load_label)).setText(R.string.signing_in);
+            gsi.setVisibility(View.VISIBLE);
+        }
     }
 
     public void signIn() {
-        loading();
+        loading(true);
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -339,7 +345,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(MainActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-                            gsi.setVisibility(View.VISIBLE);
+                            loading(false);
                         }
                         else {
                             cur_user = FirebaseAuth.getInstance().getCurrentUser();

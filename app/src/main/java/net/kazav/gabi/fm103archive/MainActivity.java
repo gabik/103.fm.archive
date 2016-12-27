@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "have extras and show key");
             img.setImageBitmap(cur_logo);
             final String show_code = extras.getString(LoadShow);
-            myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getUid() + "/" + cur_code);
+            myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getEmail().replaceAll("\\.", ",") + "/" + cur_code);
             saved_on_db = new ArrayList<>();
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override public void onDataChange(DataSnapshot dataSnapshot) {

@@ -42,11 +42,11 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private final String call_direct = "http://103fm.aod.streamgates.net/103fm_aod/";
     private final String TAG = "ListView";
     private MediaPlayer mp;
-    private int cur_pos;
+    private int cur_pos, cur_play;
     private SeekBar sb;
     private TextView endtime, starttime;
-
     private TextView stop;
+    private ListView lv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,17 +93,13 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         Log.i(TAG, "Loading saved");
 
         CallsAdapter adpt = new CallsAdapter(this, names);
-        ListView lv = (ListView) findViewById(R.id.calls_list);
+        lv = (ListView) findViewById(R.id.calls_list);
         lv.setAdapter(adpt);
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Log.i("Clicked", Integer.toString(i));
-                Log.i("URL", urls.get(i));
-                clicks.set(i, true);
-                myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).setValue(true);
-                set_click(view, true);
-                new GetCall().execute(urls.get(i));
+                play_next(i);
             }
         });
         lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -147,9 +143,35 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             });
             sb.setProgress(cur_pos);
         }
-        if (cur_pos >= total) stop_resume_listen(true);
+        Log.d("POS/TOTAL", Integer.toString(cur_pos) + "/" + Integer.toString(total));
+        if ((cur_pos+500) >= total) {
+            Log.i(TAG, "EOF");
+            runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  play_next(cur_play + 1);
+                              }
+                          });
+        }
     }
 
+    private void play_next(int i) {
+        cur_play = i;
+        if (i < urls.size()) {
+            Log.i("URL", urls.get(i));
+            Log.i("Name", names.get(i));
+            final int firstListItemPosition = lv.getFirstVisiblePosition();
+            final int lastListItemPosition = firstListItemPosition + lv.getChildCount() - 1;
+            if (i > firstListItemPosition && i < lastListItemPosition ) {
+                final int childIndex = i - firstListItemPosition;
+                View view = lv.getChildAt(childIndex);
+                set_click(view, true);
+            }
+            clicks.set(i, true);
+            myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).setValue(true);
+            new GetCall().execute(urls.get(i));
+        } else {Log.w(TAG, "End of list"); }
+    }
 
     private String get_human_time(int millis) {
         return String.format("%02d:%02d",
@@ -284,7 +306,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             mViewHolder.call.setText(names.get(position));
             mViewHolder.date.setText(dates.get(position));
             set_click(view, clicks.get(position));
-            Log.i(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
+            Log.v(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
             return view;
         }
     }

@@ -162,7 +162,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             Log.i("Name", names.get(i));
             final int firstListItemPosition = lv.getFirstVisiblePosition();
             final int lastListItemPosition = firstListItemPosition + lv.getChildCount() - 1;
-            if (i > firstListItemPosition && i < lastListItemPosition ) {
+            if (i >= firstListItemPosition && i <= lastListItemPosition ) {
                 final int childIndex = i - firstListItemPosition;
                 View view = lv.getChildAt(childIndex);
                 set_click(view, true);

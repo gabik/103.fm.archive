@@ -308,7 +308,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
 //    }
 
     private class CallsAdapter extends RecyclerView.Adapter<CallsAdapter.ViewHolder>{
-        private String AdapterTag = "Recycler Adapter";
+        private final String AdapterTag = "Recycler Adapter";
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {

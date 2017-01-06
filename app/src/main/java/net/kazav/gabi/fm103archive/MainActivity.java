@@ -43,7 +43,6 @@ import static net.kazav.gabi.fm103archive.AppGlobal.GoogleFailed;
 import static net.kazav.gabi.fm103archive.AppGlobal.LoadShow;
 import static net.kazav.gabi.fm103archive.AppGlobal.RC_SIGN_IN;
 import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
-import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
 import static net.kazav.gabi.fm103archive.AppGlobal.cur_logo;
 import static net.kazav.gabi.fm103archive.AppGlobal.cur_user;
 import static net.kazav.gabi.fm103archive.AppGlobal.dates;
@@ -138,7 +137,7 @@ public class MainActivity extends AppCompatActivity {
 //        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    void loading(boolean to_load) {
+    private void loading(boolean to_load) {
         if (to_load) {
             findViewById(R.id.loader).setVisibility(View.VISIBLE);
             ((TextView) findViewById(R.id.load_label)).setText(R.string.loading);
@@ -150,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void signIn() {
+    private void signIn() {
         loading(true);
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);

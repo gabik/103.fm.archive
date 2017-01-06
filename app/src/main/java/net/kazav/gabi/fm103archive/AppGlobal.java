@@ -1,10 +1,8 @@
 package net.kazav.gabi.fm103archive;
 
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -21,7 +19,7 @@ import java.util.ArrayList;
 class AppGlobal {
     static final int RC_SIGN_IN = 1923;
 
-    static String LIVE_URL = "http://103fm.live.streamgates.net/103fm_live/1multix/icecast.audio";
+    static final String LIVE_URL = "http://103fm.live.streamgates.net/103fm_live/1multix/icecast.audio";
 
     static class Show {
         String name;
@@ -41,9 +39,8 @@ class AppGlobal {
     static ArrayList<Show> shows = null;
     static ArrayList<Boolean> clicks = null;
 
-    static String LoadShow = "LoadShow";
+    static final String LoadShow = "LoadShow";
 
-    static String cur_code;
     static Bitmap cur_logo;
 
     static GoogleApiClient mGoogleApiClient;

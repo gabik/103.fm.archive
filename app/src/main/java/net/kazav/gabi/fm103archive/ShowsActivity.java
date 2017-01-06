@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import static net.kazav.gabi.fm103archive.AppGlobal.LIVE_URL;
 import static net.kazav.gabi.fm103archive.AppGlobal.LoadShow;
-import static net.kazav.gabi.fm103archive.AppGlobal.cur_code;
 import static net.kazav.gabi.fm103archive.AppGlobal.cur_logo;
 import static net.kazav.gabi.fm103archive.AppGlobal.shows;
 import static net.kazav.gabi.fm103archive.AppGlobal.Show;
@@ -63,7 +62,6 @@ public class ShowsActivity extends AppCompatActivity {
         Log.i(TAG, "Choosed: " + shows.get(i).name);
         stop_live();
         cur_logo = shows.get(i).img;
-        cur_code = shows.get(i).code;
         Intent intent = new Intent(this, MainActivity.class);
         intent.putExtra(LoadShow, shows.get(i).code);
         startActivity(intent);

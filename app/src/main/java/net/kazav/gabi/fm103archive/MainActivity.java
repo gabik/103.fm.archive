@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
                     BufferedReader r = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     String line;
                     while ((line = r.readLine()) != null) {
-                        Log.i(TAG, "Added: " + line);
+                        Log.i(TAG, "Loaded from site: " + line);
                         String[] res = line.split("\\|\\|");
                         names.add(res[0]);
                         urls.add(res[1]);
@@ -247,9 +247,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
-            if ((names != null) && (urls != null))
-                for (int i=0 ; i<names.size(); i++)
-                    Log.i(names.get(i), urls.get(i));
+//            if ((names != null) && (urls != null))
+//                for (int i=0 ; i<names.size(); i++)
+//                    Log.i(names.get(i), urls.get(i));
             goto_list("show");
         }
 

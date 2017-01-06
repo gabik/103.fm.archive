@@ -5,4 +5,7 @@
     <string name="_103fm_live">103fm Live</string>
     <string name="live_icon">Live icon</string>
     <string name="signing_in">Sign In</string>
+    <string name="show_icon">Show Icon</string>
+    <string name="time0">00:00</string>
+    <string name="stop_capital">STOP</string>
 </resources>

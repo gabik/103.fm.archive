@@ -1,20 +1,18 @@
 package net.kazav.gabi.fm103archive;
 
-import android.app.Activity;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -27,7 +25,6 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
@@ -47,12 +44,12 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private SeekBar sb;
     private TextView endtime, starttime;
     private TextView stop;
-    private ListView lv;
+    private RecyclerView lv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list);
+        setContentView(R.layout.activity_recycler);
 
         Log.d(TAG, callsurl);
         Log.d(TAG, call_direct);
@@ -91,27 +88,11 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             }
         });
 
-        Log.i(TAG, "Loading saved");
-
-        CallsAdapter adpt = new CallsAdapter(this, names);
-        lv = (ListView) findViewById(R.id.calls_list);
+        CallsAdapter adpt = new CallsAdapter();
+        lv = (RecyclerView) findViewById(R.id.calls_list);
+        lv.setLayoutManager(new LinearLayoutManager(this));
+        lv.setItemAnimator(new DefaultItemAnimator());
         lv.setAdapter(adpt);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.i("Clicked", Integer.toString(i));
-                play_next(i);
-            }
-        });
-        lv.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).removeValue();
-                clicks.set(i, false);
-                set_click(view, false);
-                return true;
-            }
-        });
 
         stop = (TextView) findViewById(R.id.stoptime);
         stop.setOnClickListener(new View.OnClickListener() {
@@ -131,7 +112,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
                 ix = i;
         if (ix > 0) {
             play_next(ix);
-            lv.setSelection(ix);
+            lv.getLayoutManager().scrollToPosition(ix);
         }
     }
 
@@ -174,8 +155,9 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         if (i < urls.size()) {
             Log.i("URL", urls.get(i));
             Log.i("Name", names.get(i));
-            final int firstListItemPosition = lv.getFirstVisiblePosition();
-            final int lastListItemPosition = firstListItemPosition + lv.getChildCount() - 1;
+
+            final int firstListItemPosition = ((LinearLayoutManager) lv.getLayoutManager()).findFirstVisibleItemPosition();
+            final int lastListItemPosition = ((LinearLayoutManager) lv.getLayoutManager()).findLastVisibleItemPosition();
             if (i >= firstListItemPosition && i <= lastListItemPosition ) {
                 final int childIndex = i - firstListItemPosition;
                 View view = lv.getChildAt(childIndex);
@@ -286,42 +268,95 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         }
     }
 
-    private class CallsAdapter extends ArrayAdapter<String>{
+//    private class CallsAdapter extends ArrayAdapter<String>{
+//
+//        private final Activity context;
+//
+//        CallsAdapter(Activity context, ArrayList<String> callslist) {
+//            super(context, 0, callslist);
+//            this.context = context;
+//        }
+//
+//        private class ViewHolder {
+//            private TextView call;
+//            private TextView date;
+//        }
+//
+//        @NonNull
+//        @Override
+//        public View getView(int position, View view, @NonNull ViewGroup parent) {
+//            ViewHolder mViewHolder;
+//
+//            if (view == null) {
+//                Log.i(TAG, "view is null");
+//                mViewHolder = new ViewHolder();
+//                LayoutInflater inflater = context.getLayoutInflater();
+//                view = inflater.inflate(R.layout.list_row_with_date, parent, false);
+//                mViewHolder.call = (TextView) view.findViewById(R.id.callname);
+//                mViewHolder.date = (TextView) view.findViewById(R.id.calldate);
+//                view.setTag(mViewHolder);
+//            } else {
+//                mViewHolder = (ViewHolder) view.getTag();
+//            }
+//
+//            mViewHolder.call.setText(names.get(position));
+//            mViewHolder.date.setText(dates.get(position));
+//            set_click(view, clicks.get(position));
+//            Log.v(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
+//            return view;
+//        }
+//    }
 
-        private final Activity context;
+    private class CallsAdapter extends RecyclerView.Adapter<CallsAdapter.ViewHolder>{
+        private String AdapterTag = "Recycler Adapter";
 
-        CallsAdapter(Activity context, ArrayList<String> callslist) {
-            super(context, 0, callslist);
-            this.context = context;
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View newView = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_with_date, parent, false);
+            Log.v(AdapterTag, "CreateView");
+            return new ViewHolder(newView);
         }
 
-        private class ViewHolder {
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            final int pos = position;
+            holder.call.setText(names.get(position));
+            holder.date.setText(dates.get(position));
+            set_click(holder.itemView, clicks.get(position));
+            Log.v(AdapterTag, "Added " + Integer.toString(position) + " : " + names.get(position));
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Clicked", Integer.toString(pos));
+                    play_next(pos);
+                }
+            });
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    myRef.child(urls.get(pos).split("=")[1].split("\\|")[0]).removeValue();
+                    clicks.set(pos, false);
+                    set_click(v, false);
+                    return true;
+                }
+            });
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return names.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder{
             private TextView call;
             private TextView date;
-        }
 
-        @NonNull
-        @Override
-        public View getView(int position, View view, @NonNull ViewGroup parent) {
-            ViewHolder mViewHolder;
-
-            if (view == null) {
-                Log.i(TAG, "view is null");
-                mViewHolder = new ViewHolder();
-                LayoutInflater inflater = context.getLayoutInflater();
-                view = inflater.inflate(R.layout.list_row_with_date, parent, false);
-                mViewHolder.call = (TextView) view.findViewById(R.id.callname);
-                mViewHolder.date = (TextView) view.findViewById(R.id.calldate);
-                view.setTag(mViewHolder);
-            } else {
-                mViewHolder = (ViewHolder) view.getTag();
+            ViewHolder(View itemView) {
+                super(itemView);
+                call = (TextView) itemView.findViewById(R.id.callname);
+                date = (TextView) itemView.findViewById(R.id.calldate);
             }
-
-            mViewHolder.call.setText(names.get(position));
-            mViewHolder.date.setText(dates.get(position));
-            set_click(view, clicks.get(position));
-            Log.v(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
-            return view;
         }
     }
 

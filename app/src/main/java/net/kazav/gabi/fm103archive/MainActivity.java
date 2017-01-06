@@ -3,6 +3,7 @@ package net.kazav.gabi.fm103archive;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -49,6 +50,7 @@ import static net.kazav.gabi.fm103archive.AppGlobal.dates;
 import static net.kazav.gabi.fm103archive.AppGlobal.mGoogleApiClient;
 import static net.kazav.gabi.fm103archive.AppGlobal.myRef;
 import static net.kazav.gabi.fm103archive.AppGlobal.names;
+import static net.kazav.gabi.fm103archive.AppGlobal.sharedShow;
 import static net.kazav.gabi.fm103archive.AppGlobal.shows;
 import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
@@ -69,6 +71,20 @@ public class MainActivity extends AppCompatActivity {
 //     */
 //    private GoogleApiClient client;
 
+    private void load_show(final String show_code) {
+        assert cur_user.getEmail() != null;
+        Log.i("User login", cur_user.getEmail());
+        myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getEmail().replaceAll("\\.", ",") + "/" + show_code);
+        saved_on_db = new ArrayList<>();
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot c : dataSnapshot.getChildren())
+                    saved_on_db.add(c.getKey());
+                new LoadData().execute(show_code);
+            }
+            @Override public void onCancelled(DatabaseError databaseError) {}});
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
         Bundle extras = intent.getExtras();
         gsi = ((SignInButton) findViewById(R.id.sign_in_button));
 
+        sharedShow = null;
+
         // Checking if we have show already chosen
         if ((extras != null) && (extras.containsKey(LoadShow))) {
             Log.i(TAG, "Choosed show");
@@ -86,16 +104,7 @@ public class MainActivity extends AppCompatActivity {
             Log.i(TAG, "have extras and show key");
             img.setImageBitmap(cur_logo);
             final String show_code = extras.getString(LoadShow);
-            assert cur_user.getEmail() != null;
-            myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getEmail().replaceAll("\\.", ",") + "/" + cur_code);
-            saved_on_db = new ArrayList<>();
-            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override public void onDataChange(DataSnapshot dataSnapshot) {
-                    for (DataSnapshot c : dataSnapshot.getChildren())
-                        saved_on_db.add(c.getKey());
-                    new LoadData().execute(show_code);
-                }
-                @Override public void onCancelled(DatabaseError databaseError) {}});
+            load_show(show_code);
         } else { // If no show choosed - we are booting.
             Log.i(TAG, "onCreate");
             Log.d(TAG, loaderurl);
@@ -349,7 +358,13 @@ public class MainActivity extends AppCompatActivity {
                         }
                         else {
                             cur_user = FirebaseAuth.getInstance().getCurrentUser();
-                            new LoadShows().execute();
+                            Intent intent = getIntent();
+                            Uri data = intent.getData();
+                            if (data != null) {
+                                Log.i("Load shared", data.getPath());
+                                sharedShow = data.getPath();
+                                load_show(sharedShow.split("/")[1]);
+                            } else new LoadShows().execute();
                         }
                     }
                 });

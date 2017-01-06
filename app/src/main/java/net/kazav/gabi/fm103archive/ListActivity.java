@@ -34,6 +34,7 @@ import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
 import static net.kazav.gabi.fm103archive.AppGlobal.dates;
 import static net.kazav.gabi.fm103archive.AppGlobal.myRef;
 import static net.kazav.gabi.fm103archive.AppGlobal.names;
+import static net.kazav.gabi.fm103archive.AppGlobal.sharedShow;
 import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class ListActivity extends AppCompatActivity implements Runnable {
@@ -119,6 +120,19 @@ public class ListActivity extends AppCompatActivity implements Runnable {
                 stop_resume_listen(false);
             }
         });
+
+        if (sharedShow != null) playShared(sharedShow.split("/")[2]);
+    }
+
+    private void playShared(String call_code) {
+        int ix = -1;
+        for (int i = 0 ; i < urls.size() ; i++)
+            if (urls.get(i).split("\\?")[1].split("\\|")[0].split("=")[1].equals(call_code))
+                ix = i;
+        if (ix > 0) {
+            play_next(ix);
+            lv.setSelection(ix);
+        }
     }
 
     @Override

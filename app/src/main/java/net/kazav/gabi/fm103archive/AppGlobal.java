@@ -57,4 +57,6 @@ class AppGlobal {
 
     static FirebaseUser cur_user = null;
     static DatabaseReference myRef;
+
+    static String sharedShow;
 }

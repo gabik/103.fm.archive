@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import static net.kazav.gabi.fm103archive.AppGlobal.GoogleFailed;
 import static net.kazav.gabi.fm103archive.AppGlobal.LoadShow;
 import static net.kazav.gabi.fm103archive.AppGlobal.RC_SIGN_IN;
+import static net.kazav.gabi.fm103archive.AppGlobal.SHOW_CODE_EXTRA;
 import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
 import static net.kazav.gabi.fm103archive.AppGlobal.cur_logo;
 import static net.kazav.gabi.fm103archive.AppGlobal.cur_user;
@@ -61,13 +62,10 @@ public class MainActivity extends AppCompatActivity {
     private final String TAG = "Loader";
     private FirebaseAuth mAuth;
     private ArrayList<String> saved_on_db;
+    private String show_code;
 
 
     private SignInButton gsi;
-//    /**
-//     * ATTENTION: This was auto-generated to implement the App Indexing API.
-//     * See https://g.co/AppIndexing/AndroidStudio for more information.
-//     */
 //    private GoogleApiClient client;
 
     private void load_show(final String show_code) {
@@ -75,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         Log.i("User login", cur_user.getEmail());
         myRef = FirebaseDatabase.getInstance().getReference("users/" + cur_user.getEmail().replaceAll("\\.", ",") + "/" + show_code);
         saved_on_db = new ArrayList<>();
+        this.show_code = show_code;
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot c : dataSnapshot.getChildren())
@@ -158,16 +157,14 @@ public class MainActivity extends AppCompatActivity {
     private void goto_list(String kind) {
         Log.i(TAG, "goto_list " + kind);
         Intent intent;
-        if (kind.equals("show")) intent = new Intent(this, ListActivity.class);
-        else intent = new Intent(this, ShowsActivity.class);
+        if (kind.equals("show")) {
+            intent = new Intent(this, ListActivity.class);
+            intent.putExtra(SHOW_CODE_EXTRA, show_code);
+        } else intent = new Intent(this, ShowsActivity.class);
         startActivity(intent);
         finish();
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
 //    public Action getIndexApiAction() {
 //        Thing object = new Thing.Builder()
 //                .setName("Main Page") // TODO: Define a title for the content shown.
@@ -244,21 +241,9 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void result) {
-//            if ((names != null) && (urls != null))
-//                for (int i=0 ; i<names.size(); i++)
-//                    Log.i(names.get(i), urls.get(i));
-            goto_list("show");
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
+        @Override protected void onPostExecute(Void result) {goto_list("show");}
+        @Override protected void onPreExecute() {}
+        @Override protected void onProgressUpdate(Void... values) {}
     }
 
     private class LoadShows extends AsyncTask<Void, Void, Void> {
@@ -305,18 +290,9 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Void result) {
-            goto_list("all_shows");
-        }
-
-        @Override
-        protected void onPreExecute() {
-        }
-
-        @Override
-        protected void onProgressUpdate(Void... values) {
-        }
+        @Override protected void onPostExecute(Void result) {goto_list("all_shows");}
+        @Override protected void onPreExecute() {}
+        @Override protected void onProgressUpdate(Void... values) {}
     }
 
     @Override
@@ -362,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                             if (data != null) {
                                 Log.i("Load shared", data.getPath());
                                 sharedShow = data.getPath();
-                                load_show(sharedShow.split("/")[1]);
+                                load_show(sharedShow.split("/")[2]);
                             } else new LoadShows().execute();
                         }
                     }

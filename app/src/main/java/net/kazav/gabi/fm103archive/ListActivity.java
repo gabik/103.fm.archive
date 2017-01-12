@@ -1,5 +1,12 @@
 package net.kazav.gabi.fm103archive;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -9,8 +16,11 @@ import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
@@ -25,12 +35,15 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import static net.kazav.gabi.fm103archive.AppGlobal.SHOW_CODE_EXTRA;
 import static net.kazav.gabi.fm103archive.AppGlobal.clicks;
 import static net.kazav.gabi.fm103archive.AppGlobal.dates;
 import static net.kazav.gabi.fm103archive.AppGlobal.myRef;
 import static net.kazav.gabi.fm103archive.AppGlobal.names;
+import static net.kazav.gabi.fm103archive.AppGlobal.share_prefix;
 import static net.kazav.gabi.fm103archive.AppGlobal.sharedShow;
 import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
@@ -45,6 +58,8 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private TextView endtime, starttime;
     private TextView stop;
     private RecyclerView lv;
+    private String show_code;
+    private ArrayList<CallsHolder> filtered_calls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +68,10 @@ public class ListActivity extends AppCompatActivity implements Runnable {
 
         Log.d(TAG, callsurl);
         Log.d(TAG, call_direct);
+
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        show_code = extras.getString(SHOW_CODE_EXTRA);
 
         sb = (SeekBar) findViewById(R.id.seek);
 
@@ -88,12 +107,6 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             }
         });
 
-        CallsAdapter adpt = new CallsAdapter();
-        lv = (RecyclerView) findViewById(R.id.calls_list);
-        lv.setLayoutManager(new LinearLayoutManager(this));
-        lv.setItemAnimator(new DefaultItemAnimator());
-        lv.setAdapter(adpt);
-
         stop = (TextView) findViewById(R.id.stoptime);
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -102,13 +115,53 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             }
         });
 
-        if (sharedShow != null) playShared(sharedShow.split("/")[2]);
+        if (sharedShow != null) playShared(sharedShow.split("/")[3]);
+
+        initSwipe();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.list_menu, menu);
+        SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+        boolean hide_listens = settings.getBoolean("checkbox", false);
+        MenuItem item = menu.findItem(R.id.hide_listened);
+        item.setChecked(hide_listens);
+        filtered_calls = new ArrayList<>();
+        init_adapter();
+        filter_list( hide_listens);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.hide_listened) {
+            item.setChecked(!item.isChecked());
+            SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean("checkbox", item.isChecked());
+            editor.apply();
+            filter_list(item.isChecked());
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    //    @Override
+    protected void onResume() {
+        super.onResume();
+        if (lv != null) lv.getAdapter().notifyDataSetChanged();
+    }
+
+    private String get_code_from_position(int position) {
+        return filtered_calls.get(position).url.split("\\?")[1].split("\\|")[0].split("=")[1];
     }
 
     private void playShared(String call_code) {
         int ix = -1;
-        for (int i = 0 ; i < urls.size() ; i++)
-            if (urls.get(i).split("\\?")[1].split("\\|")[0].split("=")[1].equals(call_code))
+        for (int i = 0 ; i < filtered_calls.size() ; i++)
+            if (get_code_from_position(i).equals(call_code))
                 ix = i;
         if (ix > 0) {
             play_next(ix);
@@ -152,9 +205,9 @@ public class ListActivity extends AppCompatActivity implements Runnable {
 
     private void play_next(int i) {
         cur_play = i;
-        if (i < urls.size()) {
-            Log.i("URL", urls.get(i));
-            Log.i("Name", names.get(i));
+        if (i < filtered_calls.size()) {
+            Log.i("URL", filtered_calls.get(i).url);
+            Log.i("Name", filtered_calls.get(i).name);
 
             final int firstListItemPosition = ((LinearLayoutManager) lv.getLayoutManager()).findFirstVisibleItemPosition();
             final int lastListItemPosition = ((LinearLayoutManager) lv.getLayoutManager()).findLastVisibleItemPosition();
@@ -164,8 +217,9 @@ public class ListActivity extends AppCompatActivity implements Runnable {
                 set_click(view, true);
             }
             clicks.set(i, true);
-            myRef.child(urls.get(i).split("=")[1].split("\\|")[0]).setValue(true);
-            new GetCall().execute(urls.get(i));
+            filtered_calls.get(i).click = true;
+            myRef.child(filtered_calls.get(i).url.split("=")[1].split("\\|")[0]).setValue(true);
+            new GetCall().execute(filtered_calls.get(i).url);
         } else {Log.w(TAG, "End of list"); }
     }
 
@@ -268,85 +322,8 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         }
     }
 
-//    private class CallsAdapter extends ArrayAdapter<String>{
-//
-//        private final Activity context;
-//
-//        CallsAdapter(Activity context, ArrayList<String> callslist) {
-//            super(context, 0, callslist);
-//            this.context = context;
-//        }
-//
-//        private class ViewHolder {
-//            private TextView call;
-//            private TextView date;
-//        }
-//
-//        @NonNull
-//        @Override
-//        public View getView(int position, View view, @NonNull ViewGroup parent) {
-//            ViewHolder mViewHolder;
-//
-//            if (view == null) {
-//                Log.i(TAG, "view is null");
-//                mViewHolder = new ViewHolder();
-//                LayoutInflater inflater = context.getLayoutInflater();
-//                view = inflater.inflate(R.layout.list_row_with_date, parent, false);
-//                mViewHolder.call = (TextView) view.findViewById(R.id.callname);
-//                mViewHolder.date = (TextView) view.findViewById(R.id.calldate);
-//                view.setTag(mViewHolder);
-//            } else {
-//                mViewHolder = (ViewHolder) view.getTag();
-//            }
-//
-//            mViewHolder.call.setText(names.get(position));
-//            mViewHolder.date.setText(dates.get(position));
-//            set_click(view, clicks.get(position));
-//            Log.v(TAG, "Added " + Integer.toString(position) + " : " + names.get(position));
-//            return view;
-//        }
-//    }
-
     private class CallsAdapter extends RecyclerView.Adapter<CallsAdapter.ViewHolder>{
         private final String AdapterTag = "Recycler Adapter";
-
-        @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View newView = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_with_date, parent, false);
-            Log.v(AdapterTag, "CreateView");
-            return new ViewHolder(newView);
-        }
-
-        @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
-            final int pos = position;
-            holder.call.setText(names.get(position));
-            holder.date.setText(dates.get(position));
-            set_click(holder.itemView, clicks.get(position));
-            Log.v(AdapterTag, "Added " + Integer.toString(position) + " : " + names.get(position));
-            holder.itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.i("Clicked", Integer.toString(pos));
-                    play_next(pos);
-                }
-            });
-            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    myRef.child(urls.get(pos).split("=")[1].split("\\|")[0]).removeValue();
-                    clicks.set(pos, false);
-                    set_click(v, false);
-                    return true;
-                }
-            });
-
-        }
-
-        @Override
-        public int getItemCount() {
-            return names.size();
-        }
 
         class ViewHolder extends RecyclerView.ViewHolder{
             private TextView call;
@@ -358,23 +335,159 @@ public class ListActivity extends AppCompatActivity implements Runnable {
                 date = (TextView) itemView.findViewById(R.id.calldate);
             }
         }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View newView = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row_with_date, parent, false);
+            Log.v(AdapterTag, "CreateView");
+            return new ViewHolder(newView);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            final int pos = position;
+            holder.call.setText(filtered_calls.get(position).name);
+            holder.date.setText(filtered_calls.get(position).date);
+            set_click(holder.itemView, filtered_calls.get(position).click);
+            Log.v(AdapterTag, "Added " + Integer.toString(position) + " : " + filtered_calls.get(position).name);
+            holder.itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.i("Clicked", Integer.toString(pos));
+                    play_next(pos);
+                }
+            });
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    myRef.child(filtered_calls.get(pos).url.split("=")[1].split("\\|")[0]).removeValue();
+                    clicks.set(pos, false);
+                    filtered_calls.get(pos).click = false;
+                    set_click(v, false);
+                    return true;
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return filtered_calls.size();
+        }
+
     }
 
     private void set_click(View v, boolean b) {
         if (b) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light, getTheme()));
-            }else {
-                //noinspection deprecation
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light, getTheme()));
+            else //noinspection deprecation
                 v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
-            }
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                v.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
-            }else {
-                //noinspection deprecation
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) v.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
+            else //noinspection deprecation
                 v.setBackgroundColor(getResources().getColor(android.R.color.white));
+        }
+    }
+
+    private void shareCall(int position) {
+        Log.i("SHARE", Integer.toString(position));
+        Intent sendIntent = new Intent();
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, share_prefix + show_code + "/" + get_code_from_position(position));
+        sendIntent.setType("text/plain");
+        startActivity(Intent.createChooser(sendIntent, "Share call"));
+    }
+
+    private void initSwipe(){
+        ItemTouchHelper.SimpleCallback simpleItemTouchCallback =
+            new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    int position = viewHolder.getAdapterPosition();
+                    shareCall(position);
+                }
+
+                @Override
+                public void onChildDraw(Canvas c, RecyclerView recyclerView,
+                                        RecyclerView.ViewHolder viewHolder, float dX, float dY,
+                                        int actionState, boolean isCurrentlyActive) {
+
+                    Paint p = new Paint();
+                    Bitmap icon;
+                    if(actionState == ItemTouchHelper.ACTION_STATE_SWIPE){
+
+                        View itemView = viewHolder.itemView;
+                        float height = (float) itemView.getBottom() - (float) itemView.getTop();
+//                        float width = height;
+//                        Log.d("Swipe H/W", String.valueOf(height) + " / " + String.valueOf(width));
+
+                        p.setStyle(Paint.Style.FILL);
+                        if (Build.VERSION.SDK_INT >= 23)
+                            p.setColor(getResources().getColor(R.color.shareChildBG, getTheme()));
+                        else
+                            //noinspection deprecation
+                            p.setColor(getResources().getColor(R.color.shareChildBG));
+                        RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX,(float) itemView.getBottom());
+                        c.drawRect(background,p);
+                        p.setStyle(Paint.Style.STROKE);
+                        if (Build.VERSION.SDK_INT >= 23)
+                            p.setColor(getResources().getColor(R.color.shareChildStroke, getTheme()));
+                        else
+                            //noinspection deprecation
+                            p.setColor(getResources().getColor(R.color.shareChildStroke));
+                        p.setStrokeWidth(15.0f);
+                        RectF stroke = new RectF((float) itemView.getLeft() + 2,
+                                                     (float) itemView.getTop() + 2,
+                                                     (float) itemView.getWidth()/3-2,
+                                                     (float) itemView.getBottom() - 2);
+                        c.drawRect(stroke, p);
+
+                        icon = BitmapFactory.decodeResource(getResources(), R.drawable.share);
+                        RectF icon_dest = new RectF((float) itemView.getLeft() + 5,
+                                                    (float) itemView.getTop() + 5,
+                                                    (float) itemView.getLeft() + height - 5,
+                                                    (float)itemView.getBottom() - 5);
+                        c.drawBitmap(icon,null,icon_dest,p);
+                    }
+//                    Log.i("dX", Float.toString(dX) + " / " + Integer.toString(viewHolder.itemView.getWidth()));
+                    super.onChildDraw(c, recyclerView, viewHolder, Math.min(dX, viewHolder.itemView.getWidth() / 3), dY, actionState, isCurrentlyActive);
+                }
+            };
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
+        itemTouchHelper.attachToRecyclerView((RecyclerView) findViewById(R.id.calls_list));
+    }
+
+    private class CallsHolder {
+        String name, url, date;
+        boolean click;
+
+        CallsHolder(String name, String url, String date, boolean click){
+            this.name = name;
+            this.url = url;
+            this.date = date;
+            this.click = click;
+        }
+    }
+
+    private void filter_list(boolean hide_listens) {
+        filtered_calls = new ArrayList<>();
+        for (int i=0; i<names.size(); i++) {
+            if (!(clicks.get(i) && hide_listens)) {
+                filtered_calls.add(new CallsHolder(names.get(i), urls.get(i), dates.get(i), clicks.get(i)));
             }
         }
+        lv.getAdapter().notifyDataSetChanged();
+    }
+
+    private void init_adapter() {
+        CallsAdapter adpt = new CallsAdapter();
+        lv = (RecyclerView) findViewById(R.id.calls_list);
+        lv.setLayoutManager(new LinearLayoutManager(this));
+        lv.setItemAnimator(new DefaultItemAnimator());
+        lv.setAdapter(adpt);
     }
 }

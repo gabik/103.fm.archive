@@ -58,7 +58,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private TextView endtime, starttime;
     private TextView stop;
     private RecyclerView lv;
-    private String show_code;
+    private String show_code, cur_play_url;
     private ArrayList<CallsHolder> filtered_calls;
 
     @Override
@@ -206,7 +206,8 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private void play_next(int i) {
         cur_play = i;
         if (i < filtered_calls.size()) {
-            Log.i("URL", filtered_calls.get(i).url);
+            cur_play_url = filtered_calls.get(i).url;
+            Log.i("URL", cur_play_url);
             Log.i("Name", filtered_calls.get(i).name);
 
             final int firstListItemPosition = ((LinearLayoutManager) lv.getLayoutManager()).findFirstVisibleItemPosition();
@@ -214,12 +215,14 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             if (i >= firstListItemPosition && i <= lastListItemPosition ) {
                 final int childIndex = i - firstListItemPosition;
                 View view = lv.getChildAt(childIndex);
-                set_click(view, true);
+                set_click(view, true, "");
             }
-            clicks.set(i, true);
+            int real_pos = filtered_calls.get(i).real_pos;
+            clicks.set(real_pos, true);
             filtered_calls.get(i).click = true;
             myRef.child(filtered_calls.get(i).url.split("=")[1].split("\\|")[0]).setValue(true);
             new GetCall().execute(filtered_calls.get(i).url);
+            lv.getAdapter().notifyDataSetChanged();
         } else {Log.w(TAG, "End of list"); }
     }
 
@@ -345,15 +348,16 @@ public class ListActivity extends AppCompatActivity implements Runnable {
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
+            final int real_pos = filtered_calls.get(position).real_pos;
             final int pos = position;
             holder.call.setText(filtered_calls.get(position).name);
             holder.date.setText(filtered_calls.get(position).date);
-            set_click(holder.itemView, filtered_calls.get(position).click);
+            set_click(holder.itemView, filtered_calls.get(position).click, filtered_calls.get(position).url);
             Log.v(AdapterTag, "Added " + Integer.toString(position) + " : " + filtered_calls.get(position).name);
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.i("Clicked", Integer.toString(pos));
+                    Log.i("Clicked", Integer.toString(real_pos));
                     play_next(pos);
                 }
             });
@@ -361,9 +365,9 @@ public class ListActivity extends AppCompatActivity implements Runnable {
                 @Override
                 public boolean onLongClick(View v) {
                     myRef.child(filtered_calls.get(pos).url.split("=")[1].split("\\|")[0]).removeValue();
-                    clicks.set(pos, false);
+                    clicks.set(real_pos, false);
                     filtered_calls.get(pos).click = false;
-                    set_click(v, false);
+                    set_click(v, false, "");
                     return true;
                 }
             });
@@ -376,11 +380,16 @@ public class ListActivity extends AppCompatActivity implements Runnable {
 
     }
 
-    private void set_click(View v, boolean b) {
+    private void set_click(View v, boolean b, String cur_url) {
         if (b) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light, getTheme()));
-            else //noinspection deprecation
-                v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                if (cur_url.equals(cur_play_url)) v.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright, getTheme()));
+                else v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light, getTheme()));
+            else
+                if (cur_url.equals(cur_play_url)) //noinspection deprecation
+                    v.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_bright));
+                else //noinspection deprecation
+                    v.setBackgroundColor(getResources().getColor(android.R.color.holo_green_light));
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) v.setBackgroundColor(getResources().getColor(android.R.color.white, getTheme()));
             else //noinspection deprecation
@@ -464,12 +473,14 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private class CallsHolder {
         String name, url, date;
         boolean click;
+        int real_pos;
 
-        CallsHolder(String name, String url, String date, boolean click){
+        CallsHolder(String name, String url, String date, boolean click, int real_pos){
             this.name = name;
             this.url = url;
             this.date = date;
             this.click = click;
+            this.real_pos = real_pos;
         }
     }
 
@@ -477,7 +488,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         filtered_calls = new ArrayList<>();
         for (int i=0; i<names.size(); i++) {
             if (!(clicks.get(i) && hide_listens)) {
-                filtered_calls.add(new CallsHolder(names.get(i), urls.get(i), dates.get(i), clicks.get(i)));
+                filtered_calls.add(new CallsHolder(names.get(i), urls.get(i), dates.get(i), clicks.get(i), i));
             }
         }
         lv.getAdapter().notifyDataSetChanged();

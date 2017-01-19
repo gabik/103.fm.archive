@@ -53,13 +53,14 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     private final String call_direct = "http://103fm.aod.streamgates.net/103fm_aod/";
     private final String TAG = "ListView";
     private MediaPlayer mp;
-    private int cur_pos, cur_play;
+    private int cur_pos;
     private SeekBar sb;
     private TextView endtime, starttime;
     private TextView stop;
     private RecyclerView lv;
     private String show_code, cur_play_url;
     private ArrayList<CallsHolder> filtered_calls;
+    private boolean hide_listens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,12 +125,12 @@ public class ListActivity extends AppCompatActivity implements Runnable {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.list_menu, menu);
         SharedPreferences settings = getSharedPreferences("settings", MODE_PRIVATE);
-        boolean hide_listens = settings.getBoolean("checkbox", false);
+        hide_listens = settings.getBoolean("checkbox", false);
         MenuItem item = menu.findItem(R.id.hide_listened);
         item.setChecked(hide_listens);
         filtered_calls = new ArrayList<>();
         init_adapter();
-        filter_list( hide_listens);
+        filter_list();
         return true;
     }
 
@@ -142,7 +143,8 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             SharedPreferences.Editor editor = settings.edit();
             editor.putBoolean("checkbox", item.isChecked());
             editor.apply();
-            filter_list(item.isChecked());
+            hide_listens = item.isChecked();
+            filter_list();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -197,14 +199,22 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             runOnUiThread(new Runnable() {
                               @Override
                               public void run() {
-                                  play_next(cur_play + 1);
+                                  play_next(-1);
                               }
                           });
         }
     }
 
-    private void play_next(int i) {
-        cur_play = i;
+    private int find_cur_play_url() {
+        for (int i=0; i<filtered_calls.size(); i++) if (filtered_calls.get(i).url.equals(cur_play_url)) return i;
+        return filtered_calls.size();
+    }
+
+    private void play_next(int force_play) {
+        int i;
+        if (force_play > -1) i = force_play;
+        else if (cur_play_url == null) i = 0;
+        else i = find_cur_play_url() + 1;
         if (i < filtered_calls.size()) {
             cur_play_url = filtered_calls.get(i).url;
             Log.i("URL", cur_play_url);
@@ -222,7 +232,7 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             filtered_calls.get(i).click = true;
             myRef.child(filtered_calls.get(i).url.split("=")[1].split("\\|")[0]).setValue(true);
             new GetCall().execute(filtered_calls.get(i).url);
-            lv.getAdapter().notifyDataSetChanged();
+            filter_list();
         } else {Log.w(TAG, "End of list"); }
     }
 
@@ -484,10 +494,10 @@ public class ListActivity extends AppCompatActivity implements Runnable {
         }
     }
 
-    private void filter_list(boolean hide_listens) {
+    private void filter_list() {
         filtered_calls = new ArrayList<>();
         for (int i=0; i<names.size(); i++) {
-            if (!(clicks.get(i) && hide_listens)) {
+            if (((cur_play_url != null) && cur_play_url.equals(urls.get(i))) || (!(clicks.get(i) && hide_listens))) {
                 filtered_calls.add(new CallsHolder(names.get(i), urls.get(i), dates.get(i), clicks.get(i), i));
             }
         }

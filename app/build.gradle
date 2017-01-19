@@ -7,8 +7,8 @@ android {
         applicationId "net.kazav.gabi.fm103archive"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 4
-        versionName "0.4"
+        versionCode 6
+        versionName "0.6"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

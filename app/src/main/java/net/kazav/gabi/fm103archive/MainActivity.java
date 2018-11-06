@@ -225,8 +225,19 @@ public class MainActivity extends AppCompatActivity {
                         names.add(res[0]);
                         urls.add(res[1]);
                         dates.add(res[2]);
-                        String cur_call_fix_code = res[1].split("=")[1].split("\\|")[0];
-                        if (saved_on_db.contains(cur_call_fix_code)) clicks.add(true);
+                        String cur_call_fix_code = null;
+                        if (res[1].contains("|")) {
+                            cur_call_fix_code = res[1].split("=")[1].split("\\|")[0];
+                        } else {
+                            String[] elems = res[1].split("/");
+                            if (elems[1].equals("item"))
+                                cur_call_fix_code = elems[2].split("\\.")[0];
+                            else
+                                Log.i(TAG, "Cannot load fix name for clicks: " + res[1]);
+                        }
+                        if (cur_call_fix_code != null)
+                            if (saved_on_db.contains(cur_call_fix_code)) clicks.add(true);
+                            else clicks.add(false);
                         else clicks.add(false);
                     }
                 } else {

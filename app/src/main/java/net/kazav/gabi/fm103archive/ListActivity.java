@@ -230,12 +230,18 @@ public class ListActivity extends AppCompatActivity implements Runnable {
             int real_pos = filtered_calls.get(i).real_pos;
             clicks.set(real_pos, true);
             filtered_calls.get(i).click = true;
-            myRef.child(filtered_calls.get(i).url.split("=")[1].split("\\|")[0]).setValue(true);
+            String url = null;
+            if (filtered_calls.get(i).url.split("/")[1].equals("item")) {
+                url =  filtered_calls.get(i).url.split("/")[2].split("\\.")[0];
+            } else
+                url = filtered_calls.get(i).url.split("=")[1].split("\\|")[0];
+            if (url != null)
+                myRef.child(url).setValue(true);
             new GetCall().execute(filtered_calls.get(i).url);
             filter_list();
         } else {Log.w(TAG, "End of list"); }
     }
-
+//
     private String get_human_time(int millis) {
         return String.format("%02d:%02d",
                 TimeUnit.MILLISECONDS.toMinutes(millis),

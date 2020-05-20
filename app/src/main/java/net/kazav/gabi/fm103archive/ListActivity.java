@@ -49,7 +49,7 @@ import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class ListActivity extends AppCompatActivity implements Runnable {
 
-    private final String callsurl = "http://103.gabi.ninja/get";
+    private final String callsurl = AppGlobal.BASE_URL + "/get";
     private final String call_direct = "http://103fm.aod.streamgates.net/103fm_aod/";
     private final String TAG = "ListView";
     private MediaPlayer mp;

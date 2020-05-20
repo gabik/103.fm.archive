@@ -1,14 +1,22 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '27.0.3'
+    signingConfigs {
+        debug {
+            storeFile file('/Users/gabik/workspace/projects/103.fm.archive/keystore/keystore')
+            storePassword 'wd83a2n'
+            keyAlias = '103fmarchive'
+            keyPassword 'wd83a2n'
+        }
+    }
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion '29.0.3'
     defaultConfig {
         applicationId "net.kazav.gabi.fm103archive"
-        minSdkVersion 21
-        targetSdkVersion 26
-        versionCode 8
-        versionName "0.8"
+        minSdkVersion 24
+        targetSdkVersion rootProject.ext.compileSdkVersion
+        versionCode 9
+        versionName "0.9"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -17,21 +25,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    return void;
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    /*androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })*/
-    api 'com.android.support:appcompat-v7:25.1.0'
-    api 'com.google.firebase:firebase-appindexing:10.0.1'
-    api 'com.google.firebase:firebase-auth:10.0.1'
-    api 'com.google.android.gms:play-services-auth:10.0.1'
-    api 'com.google.firebase:firebase-database:10.0.1'
-    api 'com.android.support:design:25.1.0'
-    api 'com.android.support:recyclerview-v7:25.1.0'
+    implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
+    implementation "com.android.support:support-v4:${rootProject.ext.supportLibVersion}"
+    implementation 'com.google.firebase:firebase-appindexing:10.0.1'
+    implementation 'com.google.firebase:firebase-auth:10.0.1'
+    implementation 'com.google.android.gms:play-services-auth:10.0.1'
+    implementation 'com.google.firebase:firebase-database:10.0.1'
+    implementation "com.android.support:design:${rootProject.ext.supportLibVersion}"
+    implementation "com.android.support:recyclerview-v7:${rootProject.ext.supportLibVersion}"
 }
 
 apply plugin: 'com.google.gms.google-services'

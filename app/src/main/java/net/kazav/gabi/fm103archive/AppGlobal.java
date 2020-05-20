@@ -19,6 +19,7 @@ import java.util.ArrayList;
 class AppGlobal {
     static final int RC_SIGN_IN = 1923;
     static final String SHOW_CODE_EXTRA = "gabi.kazav.show_code";
+    static final String BASE_URL = "https://103.gabi.ninja";
 
     static final String LIVE_URL = "http://103fm.live.streamgates.net/103fm_live/1multix/icecast.audio";
 
@@ -57,5 +58,5 @@ class AppGlobal {
     static DatabaseReference myRef;
 
     static String sharedShow;
-    static final String share_prefix = "http://103.gabi.ninja/share/";
+    static final String share_prefix = BASE_URL + "/share/";
 }

@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/103.fm.archive.iml" filepath="$PROJECT_DIR$/103.fm.archive.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/103.fm.archive-app.iml" filepath="$PROJECT_DIR$/app/103.fm.archive-app.iml" group="103.fm.archive/app" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/projects-103.fm.archive.iml" filepath="$PROJECT_DIR$/projects-103.fm.archive.iml" group="103.fm.archive" />
     </modules>
   </component>
 </project>

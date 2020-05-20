@@ -56,9 +56,9 @@ import static net.kazav.gabi.fm103archive.AppGlobal.urls;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String loaderurl = "http://103.gabi.ninja/calls?show=";
-    private final String showsurl = "http://103.gabi.ninja/shows";
-    private final String showspicurl = "http://103.gabi.ninja/pics?pic=";
+    private final String loaderurl = AppGlobal.BASE_URL + "/calls?show=";
+    private final String showsurl = AppGlobal.BASE_URL + "/shows";
+    private final String showspicurl = AppGlobal.BASE_URL + "/pics?pic=";
     private final String TAG = "Loader";
     private FirebaseAuth mAuth;
     private ArrayList<String> saved_on_db;
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         // Checking if we have show already chosen
         if ((extras != null) && (extras.containsKey(LoadShow))) {
             Log.i(TAG, "Choosed show");
-            loading(true);
+            loading(true, false);
             ImageView img = (ImageView) findViewById(R.id.mainlogo);
             Log.i(TAG, "have extras and show key");
             img.setImageBitmap(cur_logo);
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 //        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    private void loading(boolean to_load) {
+    private void loading(boolean to_load, boolean failed) {
         if (to_load) {
             findViewById(R.id.loader).setVisibility(View.VISIBLE);
             ((TextView) findViewById(R.id.load_label)).setText(R.string.loading);
@@ -144,12 +144,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             findViewById(R.id.loader).setVisibility(View.INVISIBLE);
             ((TextView) findViewById(R.id.load_label)).setText(R.string.signing_in);
-            gsi.setVisibility(View.VISIBLE);
+            if (!failed) gsi.setVisibility(View.VISIBLE);
         }
     }
 
     private void signIn() {
-        loading(true);
+        loading(true, false);
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
@@ -206,7 +206,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "code=" + params[0]);
                 Log.i(TAG, "url=" + loaderurl + params[0]);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
                 connection.connect();
 
@@ -264,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "LoadShows");
                 URL url = new URL(showsurl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoOutput(true);
                 connection.setRequestMethod("GET");
                 connection.connect();
 
@@ -279,7 +277,6 @@ public class MainActivity extends AppCompatActivity {
                         Bitmap img = null;
                         URL picurl = new URL(showspicurl + res[0] + ".jpg");
                         HttpURLConnection piccon = (HttpURLConnection) picurl.openConnection();
-                        piccon.getDoOutput();
                         piccon.setRequestMethod("GET");
                         piccon.connect();
                         if (piccon.getResponseCode() == 200)
@@ -324,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
             firebaseAuthWithGoogle(acct);
         } else {
             gsi.setVisibility(View.VISIBLE);
+            loading(false, true);
         }
     }
 
@@ -340,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                         if (!task.isSuccessful()) {
                             Log.w(TAG, "signInWithCredential", task.getException());
                             Toast.makeText(MainActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
-                            loading(false);
+                            loading(false, false);
                         }
                         else {
                             cur_user = FirebaseAuth.getInstance().getCurrentUser();

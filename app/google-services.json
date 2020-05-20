@@ -15,11 +15,19 @@
       },
       "oauth_client": [
         {
+          "client_id": "896874473381-ttd1dcme08qucmpbumlfbofrvebrr0n3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "net.kazav.gabi.fm103archive",
+            "certificate_hash": "7036641fb0c12b2dab7ca370b0b18278af792238"
+          }
+        },
+        {
           "client_id": "896874473381-389eu3u73ki3p632ogg3k17uqs7rlnpd.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "net.kazav.gabi.fm103archive",
-            "certificate_hash": "BED7C180B24F8F217E912BDC6FA71991ECA5A595"
+            "certificate_hash": "bed7c180b24f8f217e912bdc6fa71991eca5a595"
           }
         },
         {
@@ -33,20 +41,13 @@
         }
       ],
       "services": {
-        "analytics_service": {
-          "status": 1
-        },
         "appinvite_service": {
-          "status": 2,
           "other_platform_oauth_client": [
             {
               "client_id": "896874473381-m4slofs2u3ifruulshqlegkhoe2u37j1.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
-        },
-        "ads_service": {
-          "status": 2
         }
       }
     }

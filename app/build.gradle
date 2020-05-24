@@ -1,14 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    signingConfigs {
-        debug {
-            storeFile file('/Users/gabik/workspace/projects/103.fm.archive/keystore/keystore')
-            storePassword 'wd83a2n'
-            keyAlias = '103fmarchive'
-            keyPassword 'wd83a2n'
-        }
-    }
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion '29.0.3'
     defaultConfig {
